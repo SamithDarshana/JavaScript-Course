@@ -4,12 +4,15 @@ const mongoose = require("mongoose");
 
 const genres = require("./routes/genres");
 const customers = require("./routes/customers");
+const movies = require("./routes/movies");
+
 const app = express();
 
 app.use(express.json());
 
-app.use("/api/movies/genre", genres);
-app.use("/api/movies/customer", customers);
+app.use("/api/genre", genres);
+app.use("/api/customer", customers);
+app.use("/api/movie", movies);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
