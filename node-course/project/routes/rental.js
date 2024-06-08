@@ -5,6 +5,7 @@ const { Rental, validateRental } = require("../models/rentalModel");
 const { Movie } = require("../models/moviesModel");
 const { Customer } = require("../models/customerModel");
 const Fawn = require("fawn");
+const auth = require("../middlewares/auth");
 
 router.get("/", async (req, res) => {
   const rentals = await Rental.find();
@@ -21,7 +22,7 @@ router.get("/:id", async (req, res) => {
   res.send(rental);
 });
 
-router.post("/", async (req, res) => {
+router.post("/", auth, async (req, res) => {
   const customerId = req.body.customerId;
 
   const movieId = req.body.movieId;

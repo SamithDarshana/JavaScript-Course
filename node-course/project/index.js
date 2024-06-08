@@ -1,6 +1,7 @@
 const express = require("express");
 const Joi = require("joi");
 const mongoose = require("mongoose");
+const config = require("config");
 
 Joi.objectId = require("joi-objectid")(Joi);
 
@@ -11,16 +12,22 @@ const customers = require("./routes/customers");
 const movies = require("./routes/movies");
 const rentals = require("./routes/rental");
 const users = require("./routes/user");
+const auth = require("./routes/auth");
 
 const app = express();
-
 app.use(express.json());
+
+if (!config.has("jwtkey")) {
+  console.error("Fatal error: jwtkey is not defined");
+  process.exit(1);
+}
 
 app.use("/api/genre", genres);
 app.use("/api/customer", customers);
 app.use("/api/movie", movies);
 app.use("/api/rental", rentals);
 app.use("/api/user", users);
+app.use("/api/auth", auth);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

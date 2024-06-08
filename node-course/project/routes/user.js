@@ -1,7 +1,12 @@
 const express = require("express");
 const router = express.Router();
 
+const _ = require("lodash"); // for utility functions
+const bcrypt = require("bcrypt"); // for hash password
+const jwt = require("jsonwebtoken");
+
 const isValidId = require("../utils/validateId");
+const auth = require("../middlewares/auth");
 
 const { User, validateUser } = require("../models/userModel");
 
@@ -23,12 +28,18 @@ router.get("/:id", async (req, res) => {
 router.post("/", async (req, res) => {
   const username = req.body.username;
   const email = req.body.email;
-  const password = req.body.password;
+  let password = req.body.password;
 
   const { error } = validateUser(username, email, password);
   if (error) return res.status(400).send(error.details[0].message);
 
-  const user = new User({
+  let user = await User.findOne({ email });
+  if (user) return res.status(400).send("User already registered");
+
+  const salt = await bcrypt.genSalt(10);
+  password = await bcrypt.hash(password, salt);
+
+  user = new User({
     username,
     email,
     password,
@@ -36,13 +47,17 @@ router.post("/", async (req, res) => {
 
   try {
     await user.save();
-    res.send(user);
+    const token = user.generateAuthToken();
+    //const token = jwt.sign({ _id: this._id }, process.env.vidlyproject_jwtkey);
+    res
+      .header("x-auth-token", token)
+      .send(_.pick(user, ["_id", "username", "email"]));
   } catch (ex) {
     console.error(ex.errors);
   }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", auth, async (req, res) => {
   const username = req.body.username;
   const email = req.body.email;
   const password = req.body.password;
@@ -63,7 +78,7 @@ router.put("/:id", async (req, res) => {
   res.send(user);
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth, async (req, res) => {
   const isValid = isValidId(req.params.id);
   if (!isValid) return res.status(400).send("Invalid user");
 
