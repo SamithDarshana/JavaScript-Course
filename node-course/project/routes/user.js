@@ -10,6 +10,11 @@ const auth = require("../middlewares/auth");
 
 const { User, validateUser } = require("../models/userModel");
 
+router.get("/me", auth, async (req, res) => {
+  const user = await User.findById(req.user._id).select("-password");
+  res.send(user);
+});
+
 router.get("/", async (req, res) => {
   const users = await User.find().sort("username");
   res.send(users);
