@@ -2,6 +2,7 @@ const express = require("express");
 const Joi = require("joi");
 const mongoose = require("mongoose");
 const config = require("config");
+require("express-async-errors"); // handle async errors
 
 Joi.objectId = require("joi-objectid")(Joi);
 
@@ -13,9 +14,12 @@ const movies = require("./routes/movies");
 const rentals = require("./routes/rental");
 const users = require("./routes/user");
 const auth = require("./routes/auth");
+const error = require("./middlewares/error");
 
 const app = express();
 app.use(express.json());
+
+//winston.add(winston.transports.File, { filename: "logfile.log" });
 
 if (!config.has("jwtkey")) {
   console.error("Fatal error: jwtkey is not defined");
@@ -28,6 +32,8 @@ app.use("/api/movie", movies);
 app.use("/api/rental", rentals);
 app.use("/api/user", users);
 app.use("/api/auth", auth);
+
+app.use(error);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
